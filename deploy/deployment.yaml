@@ -1,0 +1,207 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx-3d-web
+  name: nginx-3d-web
+  namespace: testing-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-3d-web
+      app.kubernetes.io/instance: nginx-3d-web
+      app.kubernetes.io/name: nginx-3d-web
+  strategy:
+    rollingUpdate:
+      maxSurge: 30%
+      maxUnavailable: 5%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nginx-3d-web
+        app.kubernetes.io/instance: nginx-3d-web
+        app.kubernetes.io/name: nginx-3d-web
+    spec:
+      containers:
+      - image: nginx:latest
+        imagePullPolicy: Always
+        name: nginx-3d-web
+        ports:
+        - containerPort: 80
+          name: http-80
+          protocol: TCP
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: html
+          subPath: 3dviewer/viewer
+      volumes:
+      - name: html
+        persistentVolumeClaim:
+          claimName:  obs-model-manager-testing
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx-3d-web
+  name: nginx-3d-web
+  namespace: testing-tools
+spec:
+  ports:
+  - name: http-dog
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app.kubernetes.io/instance: nginx-3d-web
+    app.kubernetes.io/name: nginx-3d-web
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    everest.io/obs-volume-type: STANDARD
+    volume.beta.kubernetes.io/storage-provisioner: everest-csi-provisioner
+  name: obs-model-manager-testing
+  namespace: testing-tools
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Ti
+  storageClassName: csi-obs
+
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: istio-ingressgateway-web
+  namespace: testing-tools
+spec:
+  selector:
+    istio: istio-ingressgateway-web
+  servers:
+  - hosts:
+    - '*'
+    port:
+      name: http
+      number: 8000
+      protocol: HTTP
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: istio-ingressgateway-3d-web
+  namespace: testing-tools
+spec:
+  gateways:
+  - testing-tools/istio-ingressgateway-web
+  hosts:
+  - xxxxx.com
+  http:
+  - route:
+    - destination:
+        host: nginx-3d-web.testing-tools.svc.cluster.local
+        port:
+          number: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx-frontend-web
+  name: nginx-frontend-web
+  namespace: testing-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-frontend-web
+  template:
+    metadata:
+      labels:
+        app: nginx-frontend-web
+    spec:
+      containers:
+      - image: nginx:latest
+        imagePullPolicy: Always
+        name: nginx-3d-web
+        ports:
+        - containerPort: 80
+          name: http-80
+          protocol: TCP
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: html
+          subPath: frontend/dist
+      volumes:
+      - name: html
+        persistentVolumeClaim:
+          claimName:  obs-model-manager-testing
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx-frontend-web
+  name: nginx-frontend-web
+  namespace: testing-tools
+spec:
+  ports:
+  - name: http-dog
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx-frontend-web
+  type: ClusterIP
+
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: istio-ingressgateway-web
+  namespace: testing-tools
+spec:
+  gateways:
+  - testing-tools/istio-ingressgateway-web
+  hosts:
+  - xxxxx.com
+  http:
+  - name: backend
+    match:
+    - uri: 
+        prefix: "/api"
+    - uri: 
+        prefix: "/swagger"
+    route:
+    - destination:
+        host: bytes-linked.testing-tools.svc.cluster.local
+        port:
+          number: 8080
+  - route:
+    - destination:
+        host: nginx-frontend-web.testing-tools.svc.cluster.local
+        port:
+          number: 80
+    name: fronend

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Medieval Knight - rigged for UE4/5
+* source:	https://sketchfab.com/3d-models/medieval-knight-rigged-for-ue45-1c7a83c0832a4ab28d9f1a46d282fcf9
+* author:	Andy woodhead (https://sketchfab.com/Andywoodhead)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Medieval Knight - rigged for UE4/5" (https://sketchfab.com/3d-models/medieval-knight-rigged-for-ue45-1c7a83c0832a4ab28d9f1a46d282fcf9) by Andy woodhead (https://sketchfab.com/Andywoodhead) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

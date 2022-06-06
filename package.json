@@ -1,0 +1,16 @@
+{
+  "name": "gltf-viewer",
+  "productName": "glTF Viewer",
+  "description": "glTF 2.0 file viewer",
+  "version": "1.2.0",
+  "main": "main.js",
+  "devDependencies": {
+    "electron": "6.0.0",
+    "electron-packager": "14.0.4"
+  },
+  "scripts": {
+    "viewer": "electron ./main.js",
+    "package-win": "electron-packager . --overwrite --platform=win32 --arch=x64 --electron-version=6.0.0 --asar --icon=icons/gltf-viewer.ico && node ./copy_resources.js",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --electron-version=6.0.0 --asar --icon=icons/gltf-viewer.icns && node ./copy_resources.js"
+  }
+}
